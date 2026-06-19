@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+CONFIG_DIR="${HOME}/.config/ap"
+CURRENT_APP_FILE="${CONFIG_DIR}/current_app"
+DEFAULT_PROJECT="${ARGOCD_PROJECT:-}"
+
+mkdir -p "$CONFIG_DIR"
+
+select_app() {
+  local apps
+
+  if [[ -n "$DEFAULT_PROJECT" ]]; then
+    apps=$(argocd app list --project "$DEFAULT_PROJECT" -o name)
+  else
+    apps=$(argocd app list -o name)
+  fi
+
+  if command -v fzf >/dev/null 2>&1; then
+    selected=$(echo "$apps" | fzf --prompt="Select Argo CD app: ")
+  else
+    echo "$apps"
+    echo
+    read -rp "Enter app name: " selected
+  fi
+
+  if [[ -z "${selected:-}" ]]; then
+    echo "No app selected."
+    exit 1
+  fi
+
+  echo "$selected" > "$CURRENT_APP_FILE"
+  echo "Selected Argo CD app: $selected"
+}
+
+current_app() {
+  if [[ ! -f "$CURRENT_APP_FILE" ]]; then
+    echo "No app selected. Run: ap select"
+    exit 1
+  fi
+
+  cat "$CURRENT_APP_FILE"
+}
+
+case "${1:-}" in
+  select|"")
+    select_app
+    ;;
+
+  current)
+    current_app
+    ;;
+
+  get)
+    app=$(current_app)
+    argocd app get "$app" "${@:2}"
+    ;;
+
+  diff)
+    app=$(current_app)
+    argocd app diff "$app" "${@:2}"
+    ;;
+
+  sync)
+    app=$(current_app)
+    argocd app sync "$app" "${@:2}"
+    ;;
+
+  history)
+    app=$(current_app)
+    argocd app history "$app" "${@:2}"
+    ;;
+
+  resources)
+    app=$(current_app)
+    argocd app resources "$app" "${@:2}"
+    ;;
+
+  manifests)
+    app=$(current_app)
+    argocd app manifests "$app" "${@:2}"
+    ;;
+
+  *)
+    app=$(current_app)
+    argocd app "$1" "$app" "${@:2}"
+    ;;
+esac
