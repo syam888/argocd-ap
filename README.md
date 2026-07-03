@@ -6,15 +6,7 @@
 
 ## Installation
 
-### macOS / Linux
-
-```bash
-brew install syam888/argocd-ap/argocd-ap
-```
-
-### Windows
-
-Download the latest `ap-windows-amd64.exe` from the [GitHub Releases](https://github.com/syam888/argocd-ap/releases/latest) page, rename it to `ap.exe`, and place it somewhere on your `PATH`.
+Download the latest release for your platform from [GitHub Releases](https://github.com/syam888/argocd-ap/releases/latest), then place the executable on your `PATH`.
 
 ## Usage
 
